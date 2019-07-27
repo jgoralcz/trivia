@@ -14,5 +14,5 @@ COPY . .
 
 EXPOSE 4000
 
-CMD ["pm2-runtime", "server.js"]
+CMD ["pm2-runtime", "./src/server.js"]
 #CMD ["node", "index.js"]
