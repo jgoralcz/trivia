@@ -1,4 +1,4 @@
-const { pool } = require('./pool');
+const pool = require('./pool');
 
 /**
  * gets a random trivia question
@@ -375,7 +375,7 @@ const randomTriviaNameType = async (search, type, limit) => {
       FROM trivia_table 
       WHERE 
         question ILIKE '%' || $1 || '%'
-        AND type = $1
+        AND type = $2
       ORDER BY random() 
       LIMIT $3;
     `, [search, type, limit]);

@@ -39,7 +39,9 @@ const getTriviaByID = async (req, res) => {
  */
 const getRandomTrivia = async (req, res) => {
   // search, limit, nsfw, queries.
-  const { name, category, type, difficulty } = req.query;
+  const {
+    search, category, type, difficulty,
+  } = req.query;
   let { limit } = req.query;
 
   // check limit, max of 10, min of 1
@@ -51,13 +53,13 @@ const getRandomTrivia = async (req, res) => {
       limit = minQuestions;
     }
   } else {
-    limit = maxQuestions;
+    limit = minQuestions;
   }
 
-  // search for trivia question with this name
-  if (name != null) {
+  // search for trivia question with this search
+  if (search != null) {
     try {
-      const triviaQuery = await db.searchTriviaQuestions(name, category, type, difficulty, limit);
+      const triviaQuery = await db.searchTriviaQuestions(search, category, type, difficulty, limit);
       res.status(200)
         .contentType('application/json')
         .send(triviaQuery.rows);
@@ -66,7 +68,7 @@ const getRandomTrivia = async (req, res) => {
       console.error(error);
       res.status(500)
         .contentType('application/json')
-        .send(`{ "error": "Internal error searching for trivia question with name: ${name}, limit: ${limit}" }`);
+        .send(`{ "error": "Internal error searching for trivia question with name: ${search}, limit: ${limit}" }`);
     }
   } else { // default show random
     try {
