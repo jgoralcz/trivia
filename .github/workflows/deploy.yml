@@ -1,0 +1,118 @@
+name: Deploy
+on:
+  push:
+    branches: [master, dev]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Extract Environment
+        shell: bash
+        run: echo "##[set-output name=env;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "prod" || echo "beta")"
+        id: extract_environment
+
+      - name: Extract Environment Uppercase
+        shell: bash
+        run: echo "##[set-output name=env_uppercase;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "PROD" || echo "BETA")"
+        id: extract_environment_uppercase
+
+      - name: Extract Repo Name
+        shell: bash
+        run: echo "##[set-output name=repo;]$(echo ${GITHUB_REPOSITORY##*/})"
+        id: extract_repo
+
+      - name: Extract Service Name for Kubernetes
+        shell: bash
+        run: echo "##[set-output name=service;]$(echo ${GITHUB_REPOSITORY##*/} | tr '_' '-')"
+        id: extract_service
+
+      - name: Build Environment Prefix
+        shell: bash
+        run: echo "##[set-output name=prefix;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "" || echo "beta-")"
+        id: extract_prefix
+
+      - name: Build CPU Limit
+        shell: bash
+        run: echo "##[set-output name=limit;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "500m" || echo "200m")"
+        id: cpu_limit
+
+      - name: Build CPU Request
+        shell: bash
+        run: echo "##[set-output name=request;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "250m" || echo "100m")"
+        id: cpu_request
+
+      - name: Build Memory Limit
+        shell: bash
+        run: echo "##[set-output name=limit;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "512Mi" || echo "128Mi")"
+        id: memory_limit
+
+      - name: Build Memory Request
+        shell: bash
+        run: echo "##[set-output name=request;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "256Mi" || echo "64Mi")"
+        id: memory_request
+
+      - name: Build Ingress Type
+        shell: bash
+        run: echo "##[set-output name=ingress;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "k8s/ingress.yml" || echo "k8s/ingress-public.yml")"
+        id: extract_ingress
+
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: ${{ github.actor }}/${{ steps.extract_repo.outputs.repo }}/${{ steps.extract_repo.outputs.repo }}
+          tags: ${{ steps.extract_environment.outputs.env }}
+
+      - name: Setup kubectl
+        shell: bash
+        run: |
+          mkdir -p ${{ env.KUBECONFIG_FOLDER }} \
+            && echo "${{ secrets.KUBECONFIG}}" | base64 -d > ${{ env.KUBECONFIG_FOLDER }}/config
+        env:
+          KUBECONFIG_FOLDER: ~/.kube
+
+      - name: Deploy to Kubernetes
+        shell: bash
+        run: |
+          kubectl set image deployment/${{ env.SERVICE_NAME }} ${{ env.SERVICE_NAME }}=${{ env.IMAGE_LOCATION }} || echo "${{ env.SERVICE_NAME }} deployment not found"\
+          && envsubst < ${{ env.INGRESS }} | kubectl apply -f - \
+          && envsubst < k8s/service.yml | kubectl apply -f - \
+          && envsubst < k8s/deployment.yml | kubectl apply -f - \
+          && kubectl rollout restart deployment/${{ env.SERVICE_NAME}}
+        env:
+          ENV: ${{ steps.extract_environment_uppercase.outputs.env_uppercase }}
+          INGRESS: ${{ steps.extract_ingress.outputs.ingress }}
+          IMAGE_LOCATION: docker.pkg.github.com/jgoralcz/${{ steps.extract_repo.outputs.repo }}/${{ steps.extract_repo.outputs.repo }}:${{ steps.extract_environment.outputs.env }}
+          SERVICE_NAME: ${{ steps.extract_prefix.outputs.prefix }}${{ steps.extract_service.outputs.service }}
+          PORT: 8443
+          PREFIX: ${{ steps.extract_prefix.outputs.prefix }}
+          HOST_URL: ${{ steps.extract_prefix.outputs.prefix }}${{ secrets.HOST_URL }}
+          CPU_LIMIT: ${{ steps.cpu_limit.outputs.limit }}
+          CPU_REQUEST: ${{ steps.cpu_request.outputs.request }}
+          MEMORY_LIMIT: ${{ steps.memory_limit.outputs.limit }}
+          MEMORY_REQUEST: ${{ steps.memory_request.outputs.request }}
+
+      - name: Deploy HOST_URL to Cloudflare
+        shell: bash
+        run: |
+          curl --fail -s -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records" \
+          -H "X-Auth-Email: ${{ secrets.CLOUDFLARE_EMAIL }}" \
+          -H "X-Auth-Key: ${{ secrets.CLOUDFLARE_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          --data '{"type":"A","name":"${{ env.HOST_URL }}","content":"${{ secrets.HA_PROXY_IP }}","ttl":1,"proxied":true}' || (
+            DNS_RECORD_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records?type=A&name=$HOST_URL" \
+            -H "X-Auth-Email: ${{ secrets.CLOUDFLARE_EMAIL }}" \
+            -H "X-Auth-Key: ${{ secrets.CLOUDFLARE_TOKEN }}" \
+            -H "Content-Type: application/json" | jq -r '{"result"}[] | .[0] | .id') && \
+
+            curl --fail -s -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/$DNS_RECORD_ID" \
+            -H "X-Auth-Email: ${{ secrets.CLOUDFLARE_EMAIL }}" \
+            -H "X-Auth-Key: ${{ secrets.CLOUDFLARE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"type":"A","name":"${{ env.HOST_URL }}","content":"${{ secrets.HA_PROXY_IP }}","ttl":1,"proxied":true}' || echo "Failed updating dns record"
+          )
+        env:
+          HOST_URL: ${{ steps.extract_prefix.outputs.prefix }}${{ secrets.HOST_URL }}

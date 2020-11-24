@@ -1,4 +1,3 @@
-const pool = require('./pool');
 const {
   randomTrivia,
   randomTriviaCatTypeDif,
@@ -16,8 +15,10 @@ const {
   randomTriviaNameTypeDif,
   randomTriviaNameDif,
   randomTriviaNameType,
-} = require('./QueryHelper.js');
-const { maxQuestions, minQuestions } = require('../../config.json'); // 10, 1
+} = require('./trivia');
+
+const { config } = require('../util/constants/paths');
+const { maxQuestions, minQuestions } = require(config); // 10, 1
 
 // insert normal trivia
 // const insertTrivia = async (trivia) => {
@@ -34,22 +35,7 @@ const { maxQuestions, minQuestions } = require('../../config.json'); // 10, 1
 //   }
 // };
 
-/**
- * gets a random trivia question.
- * @returns {Promise<*>}
- */
-const getTriviaByID = async (id) => {
-  const client = await pool.connect();
-  try {
-    return await client.query(`
-      SELECT * 
-      FROM trivia_table 
-      WHERE id = $1;
-    `, [id]);
-  } finally {
-    client.release();
-  }
-};
+const getTriviaByID = async (id) => getTriviaByID(id);
 
 /**
  * gets a random trivia, based off the category, type, difficulty, and limit.
@@ -60,30 +46,47 @@ const getTriviaByID = async (id) => {
  * @returns {Promise<void>}
  */
 const getRandomTrivia = async (category, type, difficulty, limit) => {
-  const verifiedLimit = (limit != null && !isNaN(limit)
-    && limit <= maxQuestions && limit >= minQuestions) ? limit : 1;
+  const verifiedLimit = (limit && !isNaN(limit) && limit <= maxQuestions && limit >= minQuestions) ? limit : 1;
 
   // check if they want a category
   if (category != null) {
-    if (type != null && difficulty != null) { // category, difficulty, and type
+    // category, difficulty, and type
+    if (type != null && difficulty != null) {
       return randomTriviaCatTypeDif(category, type, difficulty, verifiedLimit);
-    } if (difficulty != null) { // category and difficulty
+    }
+
+    // category and difficulty
+    if (difficulty != null) {
       return randomTriviaCatDif(category, difficulty, verifiedLimit);
-    } if (type != null) { // category and type
+    }
+
+    // category and type
+    if (type != null) {
       return randomTriviaCatType(category, type, verifiedLimit);
-    } // just category
+    }
+
+    // just category
     return randomTriviaCategory(category, verifiedLimit);
-  } if (type != null) { // type
-    if (difficulty != null) { // type and difficulty
+  }
+
+  // type
+  if (type != null) {
+    // type and difficulty
+    if (difficulty != null) {
       return randomTriviaTypeDif(type, difficulty, verifiedLimit);
-    } // just type
+    }
+
+    // just type
     return randomTriviaType(type, verifiedLimit);
-  } if (difficulty != null) { // just difficulty
+  }
+
+  // just difficulty
+  if (difficulty != null) {
     return randomTriviaDif(difficulty, verifiedLimit);
   }
+
   return randomTrivia(verifiedLimit);
 };
-
 
 /**
  * search for trivia questions
@@ -100,22 +103,40 @@ const searchTriviaQuestions = async (name, category, type, difficulty, limit) =>
 
   // check if they want a category
   if (category != null) {
-    if (type != null && difficulty != null) { // category, difficulty, and type
+    // category, difficulty, and type
+    if (type != null && difficulty != null) {
       return randomTriviaNameCatTypeDif(name, category, type, difficulty, verifiedLimit);
-    } if (difficulty != null) { // category and difficulty
+    }
+
+    // category and difficulty
+    if (difficulty != null) {
       return randomTriviaNameCatDif(name, category, difficulty, verifiedLimit);
-    } if (type != null) { // category and type
+    }
+
+    // category and type
+    if (type != null) {
       return randomTriviaNameCatType(name, category, type, verifiedLimit);
-    } // just category
+    }
+
+    // just category
     return randomTriviaNameCategory(name, category, verifiedLimit);
-  } if (type != null) { // type
-    if (difficulty != null) { // type and difficulty
+  }
+
+  // type
+  if (type != null) {
+    // type and difficulty
+    if (difficulty != null) {
       return randomTriviaNameTypeDif(name, type, difficulty, verifiedLimit);
-    } // just type
+    }
+    // just type
     return randomTriviaNameType(name, type, verifiedLimit);
-  } if (difficulty != null) { // just difficulty
+  }
+
+  // just difficulty
+  if (difficulty != null) {
     return randomTriviaNameDif(name, difficulty, verifiedLimit);
   }
+
   return randomTriviaName(name, verifiedLimit);
 };
 

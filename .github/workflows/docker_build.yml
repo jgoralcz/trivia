@@ -1,0 +1,31 @@
+name: Docker Build
+on:
+  push:
+    branches: [master, dev]
+jobs:
+  docker_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Extract environment
+        shell: bash
+        run: echo "##[set-output name=env;]$([ "${GITHUB_REF##*/}" == "master" ] && echo "prod" || echo "beta")"
+        id: extract_environment
+
+      - name: Extract Repo Name
+        shell: bash
+        run: echo "##[set-output name=repo;]$(echo ${GITHUB_REPOSITORY##*/})"
+        id: extract_repo
+
+      - name: Build Host URL
+        shell: bash
+        run: echo "##[set-output name=url;]$([ "${GITHUB_REF##*/}" == "master" ] && echo ${{ secrets.HOST_URL }} || echo "beta-${{ secrets.HOST_URL }}")"
+        id: extract_host_url
+
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ${{ secrets.DOCKER_USERNAME }}/${{ steps.extract_repo.outputs.repo }}
+          tags: ${{ steps.extract_environment.outputs.env }}

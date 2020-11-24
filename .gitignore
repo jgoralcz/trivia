@@ -60,5 +60,7 @@ typings/
 # next.js build output
 .next
 
-# config file
+# config files
 config.json
+api.json
+auth
