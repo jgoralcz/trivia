@@ -1,4 +1,4 @@
-const basePath = '/Users/Josh/Documents/GitHub/trivia/v1';
+const basePath = '/node/config';
 
 module.exports = Object.freeze({
   api: `${basePath}/api.json`,

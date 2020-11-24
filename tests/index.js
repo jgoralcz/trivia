@@ -47,5 +47,3 @@ const testPhrases = [
   }
   process.exit(1);
 })();
-
-

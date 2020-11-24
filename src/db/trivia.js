@@ -274,14 +274,13 @@ const randomTriviaNameType = async (search, type, limit) => poolQuery(`
 
 /**
  * get a trivia entry by its id.
- * @param {BigInteger} id 
+ * @param {BigInteger} id the id to search by
  */
 const getTriviaByID = async (id) => poolQuery(`
   SELECT * 
   FROM trivia_table 
   WHERE id = $1;
 `, [id]);
-
 
 module.exports = {
   randomTrivia,

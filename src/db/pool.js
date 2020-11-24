@@ -22,8 +22,8 @@ const poolQuery = async (query, paramsArray) => {
   } finally {
     client.release();
   }
+  return undefined;
 };
-
 
 module.exports = {
   poolQuery,

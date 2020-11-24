@@ -35,7 +35,7 @@ const { maxQuestions, minQuestions } = require(config); // 10, 1
 //   }
 // };
 
-const getTriviaByID = async (id) => getTriviaByIDQuery(id);
+const getTriviaByID = async (id) => getTriviaByID(id);
 
 /**
  * gets a random trivia, based off the category, type, difficulty, and limit.
@@ -87,7 +87,6 @@ const getRandomTrivia = async (category, type, difficulty, limit) => {
 
   return randomTrivia(verifiedLimit);
 };
-
 
 /**
  * search for trivia questions
