@@ -19,6 +19,6 @@ server.use(bodyparser.urlencoded({ extended: true }));
 server.use(bodyparser.json());
 server.use(httpLogger());
 
-server.use('/v1/trivia', router, errorHandler);
+server.use('/', router, errorHandler);
 
 server.listen(port, () => logger.info(`${env.toUpperCase()} server started on ${port}`));

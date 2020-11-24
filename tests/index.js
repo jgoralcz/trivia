@@ -40,7 +40,7 @@ const testPhrases = [
 (async () => {
   for (let i = 0; i < testPhrases.length; i += 1) {
     const phrase = testPhrases[i];
-    const { status, data } = await axios.get(`http://localhost:8443/v1/trivia/?${phrase}`);
+    const { status, data } = await axios.get(`http://localhost:8443/?${phrase}`);
     if (status !== 200 || !data) {
       console.error(`\nFailed with phrase ${phrase}: status=${status}, data=${data}\n`);
     }
