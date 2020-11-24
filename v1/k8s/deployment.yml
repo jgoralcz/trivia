@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${SERVICE_NAME}
+  namespace: josh-apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${SERVICE_NAME}
+  template:
+    metadata:
+      labels:
+        app: ${SERVICE_NAME}
+    spec:
+      nodeSelector:
+        location: na
+      containers:
+        - name: ${SERVICE_NAME}
+          image: ${IMAGE_LOCATION}
+          imagePullPolicy: Always
+          env:
+            - name: PORT
+              value: "${PORT}"
+            - name: NODE_ENV
+              value: "${ENV}"
+          resources:
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - name: api
+              readOnly: true
+              mountPath: /node/config/api.json
+              subPath: api.json
+            - name: config
+              readOnly: true
+              mountPath: /node/config/config.json
+              subPath: config.json
+      imagePullSecrets:
+        - name: github-registry
+      volumes:
+        - name: api
+          secret:
+            secretName: ${PREFIX}trivia-api.json
+        - name: config
+          configMap:
+            name: trivia-config.json

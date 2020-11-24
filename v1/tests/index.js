@@ -1,7 +1,5 @@
-const rp = require('request-promise');
-const assert = require('assert');
-const index = require('../src/server.js');
-const { port } = require('../config.json');
+const axios = require('axios');
+require('../src/server');
 
 const testPhrases = [
   // search term
@@ -39,23 +37,15 @@ const testPhrases = [
   '',
 ];
 
-
-const testRequest = async phrase => rp({
-  uri: `http://localhost:${port}/v1/trivia/?${phrase}`,
-  method: 'GET',
-  resolveWithFullResponse: true,
-  headers: {
-    'Content-type': 'application/json',
-  },
-});
-
-setTimeout(async () => {
+(async () => {
   for (let i = 0; i < testPhrases.length; i += 1) {
-    const tp = testPhrases[i];
-    console.log(i + 1, tp);
-    const request = await testRequest(testPhrases[i]);
-    assert(request.statusCode, 200);
+    const phrase = testPhrases[i];
+    const { status, data } = await axios.get(`http://localhost:8443/v1/trivia/?${phrase}`);
+    if (status !== 200 || !data) {
+      console.error(`\nFailed with phrase ${phrase}: status=${status}, data=${data}\n`);
+    }
   }
-  console.log(testPhrases.length, ' returned OK');
   process.exit(1);
-}, 2000);
+})();
+
+

@@ -1,18 +1,21 @@
-FROM node:12
+FROM node:lts-alpine3.10
 
-WORKDIR /usr/src/app
+LABEL owner = jgoralcz
+LABEL serviceVersion = 0.1.0
+LABEL description = "Trivia API"
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-COPY package*.json ./
+WORKDIR /usr/node
 
-# install pm2 and our packages.
-RUN npm install pm2 -g && npm install
+COPY --chown=node:node package*.json /usr/node/
+COPY --chown=node:node src/ /usr/node/src/
 
-# Bundle app source
-COPY . .
+RUN mkdir logs && chown -R node:node logs
 
-EXPOSE 4000
+EXPOSE 8443
 
-CMD ["pm2-runtime", "./src/server.js"]
-#CMD ["node", "index.js"]
+RUN npm install
+
+WORKDIR /usr/node/src
+USER node
+
+CMD ["npm", "start"]

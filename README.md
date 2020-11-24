@@ -1,5 +1,5 @@
 # trivia REST API
-5200+ multiple choice trivia questions in a REST API.
+5200+ multiple choice trivia questions in a REST API. You can use the live instance at `beta-trivia.bongo.best`
 
 ---
 ### How to Use:
