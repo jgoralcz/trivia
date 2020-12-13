@@ -13,7 +13,7 @@ const getTriviaByID = async (req, res) => {
     return res.status(400).send({ error: `could not find a trivia by id ${id}`, status: 404 });
   }
 
-  res.status(200).send(rows);
+  return res.status(200).send(rows);
 };
 
 const getRandomTrivia = async (req, res) => {

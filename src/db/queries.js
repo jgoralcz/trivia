@@ -15,6 +15,7 @@ const {
   randomTriviaNameTypeDif,
   randomTriviaNameDif,
   randomTriviaNameType,
+  getTriviaByID: getTriviaByIDdb,
 } = require('./trivia');
 
 const { config } = require('../util/constants/paths');
@@ -35,7 +36,7 @@ const { maxQuestions, minQuestions } = require(config); // 10, 1
 //   }
 // };
 
-const getTriviaByID = async (id) => getTriviaByID(id);
+const getTriviaByID = async (id) => getTriviaByIDdb(id);
 
 /**
  * gets a random trivia, based off the category, type, difficulty, and limit.
