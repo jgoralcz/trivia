@@ -34,8 +34,8 @@ cache-control: no-cache
 2) By random and with filters
  - search
  - category `(Entertainment | Sports | Science | Animals | General Knowledge | Mythology | Politics | Geography | History)`
- - type `(easy | medium | hard)`
- - difficulty `(boolean | multiple)`
+ - difficulty `(easy | medium | hard)`
+ - type `(boolean | multiple)`
  - limit `(1-10)`
 
 **Example**
