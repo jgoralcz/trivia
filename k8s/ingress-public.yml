@@ -13,10 +13,27 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: ${SERVICE_NAME}
-              servicePort: ${PORT}
+              service:
+                name: ${SERVICE_NAME}
+                port:
+                  number: 8443
+              
+    - host: ${HOST_URL_IO}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ${SERVICE_NAME}
+                port:
+                  number: 8443 
   tls:
     - hosts:
         - ${HOST_URL}
       secretName: ssl-bongo
+    - hosts:
+        - ${HOST_URL_IO}
+      secretName: ssl-bongobot
