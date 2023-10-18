@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ${SERVICE_NAME}
@@ -19,7 +19,6 @@ spec:
                 name: ${SERVICE_NAME}
                 port:
                   number: 8443
-              
     - host: ${HOST_URL_IO}
       http:
         paths:
