@@ -1,10 +1,10 @@
 # trivia REST API
-5200+ multiple choice trivia questions in a REST API. You can use the live instance at `beta-trivia.bongo.best`
+5200+ multiple choice trivia questions in a REST API. You can use the live instance at `beta-trivia.bongobot.io`
 
 ---
 ### How to Use:
 There are a few ways to get your trivia question 
-1) By id 1-5200
+1. By id 1-5200
 
 **Example**
 ```$xslt
