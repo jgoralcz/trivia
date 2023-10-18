@@ -90,6 +90,7 @@ jobs:
           PORT: 8443
           PREFIX: ${{ steps.extract_prefix.outputs.prefix }}
           HOST_URL: ${{ steps.extract_prefix.outputs.prefix }}${{ secrets.HOST_URL }}
+          HOST_URL_IO: ${{ steps.extract_prefix.outputs.prefix }}${{ secrets.HOST_URL_IO }}
           CPU_LIMIT: ${{ steps.cpu_limit.outputs.limit }}
           CPU_REQUEST: ${{ steps.cpu_request.outputs.request }}
           MEMORY_LIMIT: ${{ steps.memory_limit.outputs.limit }}
